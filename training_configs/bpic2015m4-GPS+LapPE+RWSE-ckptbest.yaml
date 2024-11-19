@@ -10,14 +10,14 @@ dataset:
   task: graph
   task_type: regression
   transductive: False
-  split_mode: cv-kfold-5
+  split_mode: standard
   node_encoder: True
   node_encoder_name: TypeDictNode+LapPE+RWSE
   node_encoder_num_types: 354
-  node_encoder_bn: True
+  node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: TwoLayerLinearEdge
-  edge_encoder_bn: True
+  edge_encoder_bn: False
 posenc_LapPE:
   enable: True
   eigen:
@@ -37,18 +37,16 @@ posenc_RWSE:
   raw_norm_type: BatchNorm
 train:
   mode: custom
-  batch_size: 128
+  batch_size: 64
   eval_period: 1
-  enable_ckpt: True
-  ckpt_best: True
-  #ckpt_period: 100
+  ckpt_period: 100
 model:
   type: GPSModel
   loss_fun: l1
   edge_decoding: dot
   graph_pooling: mean
 gt:
-  layer_type: GINE+Transformer  # CustomGatedGCN+Performer
+  layer_type: GINE+Transformer
   layers: 5
   n_heads: 8
   dim_hidden: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
@@ -57,7 +55,7 @@ gt:
   layer_norm: False
   batch_norm: True
 gnn:
-  head: san_graph
+  head: san_graph # can be san_graph or default
   layers_pre_mp: 0
   layers_post_mp: 3  # Not used when `gnn.head: san_graph`
   dim_inner: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
@@ -71,6 +69,6 @@ optim:
   optimizer: adamW
   weight_decay: 1e-5
   base_lr: 0.001
-  max_epoch: 650
+  max_epoch: 200
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 50
+  num_warmup_epochs: 100

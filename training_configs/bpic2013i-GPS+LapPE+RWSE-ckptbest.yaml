@@ -10,7 +10,7 @@ dataset:
   task: graph
   task_type: regression
   transductive: False
-  split_mode: cv-kfold-5
+  split_mode: standard
   node_encoder: True
   node_encoder_name: TypeDictNode+LapPE+RWSE
   node_encoder_num_types: 12
@@ -69,8 +69,8 @@ gnn:
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
+  weight_decay: 1e-2
   base_lr: 0.001
-  max_epoch: 600
+  max_epoch: 200
   scheduler: cosine_with_warmup
   num_warmup_epochs: 50

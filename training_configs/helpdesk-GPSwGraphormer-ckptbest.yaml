@@ -10,18 +10,18 @@ dataset:
   task: graph
   task_type: regression
   transductive: False
-  split_mode: cv-kfold-5
+  split_mode: standard
   node_encoder: True
   node_encoder_name: TypeDictNode+GraphormerBias+RWSE
   node_encoder_num_types: 14
   node_encoder_bn: True
   edge_encoder: True
-  edge_encoder_name: LinearEdge
+  edge_encoder_name: TwoLayerLinearEdge
   edge_encoder_bn: True
 posenc_GraphormerBias:
   enable: True
   node_degrees_only: True
-  num_spatial_types: 20
+  num_spatial_types: 32
   num_in_degrees: 14
   num_out_degrees: 14
 graphormer:
@@ -39,7 +39,7 @@ posenc_LapPE:
 posenc_RWSE:
   enable: True
   kernel:
-    times_func: range(1,14)
+    times_func: range(1,23)
   model: Linear
   dim_pe: 8
   raw_norm_type: BatchNorm
@@ -54,13 +54,13 @@ model:
   type: GPSModel
   loss_fun: l1
   edge_decoding: dot
-  graph_pooling: add
+  graph_pooling: mean
 gt:
   layer_type: GINE+Transformer  # CustomGatedGCN+Performer
   layers: 5
   n_heads: 8
   dim_hidden: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
-  dropout: 0.0
+  dropout: 0.2
   attn_dropout: 0.5
   layer_norm: False
   batch_norm: True
@@ -71,14 +71,15 @@ gnn:
   dim_inner: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
   batchnorm: True
   act: relu
-  dropout: 0.0
+  dropout: 0.2
   agg: mean  
   normalize_adj: False
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 0.001
-  max_epoch: 500
+  weight_decay: 1e-2
+  base_lr: 0.0005
+  max_epoch: 100
   scheduler: cosine_with_warmup
   num_warmup_epochs: 50
+

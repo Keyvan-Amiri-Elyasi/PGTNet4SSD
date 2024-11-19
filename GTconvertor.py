@@ -355,8 +355,11 @@ def main(directory, yml_file, overwrite):
         # Import the event log
         root_directory = os.path.dirname(os.path.abspath(__file__))
         dataset_path = os.path.join(root_directory, 'raw_dataset', dataset_name)
-        log = xes_importer.apply(dataset_path)   
-        event_log = pm4py.read_xes(dataset_path)
+        log_original = xes_importer.apply(dataset_path)   
+        event_log_original = pm4py.read_xes(dataset_path)
+        """
+        log
+        event_log
         # Assigning values from .yml file to global variables in main
         split_ratio = user_inputs.get('train_val_test_ratio')
         event_attributes = user_inputs.get('event_attributes', [])
@@ -442,7 +445,8 @@ def main(directory, yml_file, overwrite):
             save_address = osp.join(graph_dataset_path_raw, output_address_list[address_counter])
             save_flie = open(save_address, "wb")
             pickle.dump(file_save_list[address_counter], save_flie)
-            save_flie.close()      
+            save_flie.close()  
+        """
         
     except FileNotFoundError:
         print("File not found. Please provide a valid file path.")

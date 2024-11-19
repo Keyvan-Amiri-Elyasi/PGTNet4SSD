@@ -10,7 +10,7 @@ dataset:
   task: graph
   task_type: regression
   transductive: False
-  split_mode: cv-kfold-5
+  split_mode: standard
   node_encoder: True
   node_encoder_name: TypeDictNode+LapPE+RWSE
   node_encoder_num_types: 406
@@ -39,9 +39,7 @@ train:
   mode: custom
   batch_size: 128
   eval_period: 1
-  enable_ckpt: True
-  ckpt_best: True
-  #ckpt_period: 100
+  ckpt_period: 100
 model:
   type: GPSModel
   loss_fun: l1
@@ -71,6 +69,6 @@ optim:
   optimizer: adamW
   weight_decay: 1e-5
   base_lr: 0.001
-  max_epoch: 650
+  max_epoch: 600
   scheduler: cosine_with_warmup
   num_warmup_epochs: 50
