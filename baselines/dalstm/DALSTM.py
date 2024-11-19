@@ -31,6 +31,12 @@ import warnings
 # Genral utility methods, and classes
 ##############################################################################
 
+def get_subset_cases(ssd_dict, ssd_id, log, ssd_data_path):
+    selected_cases = ssd_dict.get(ssd_id)
+    subset_log = pm4py.filter_trace_attribute_values(log, 'concept:name', selected_cases)
+    pm4py.write_xes(subset_log, ssd_data_path)    
+    return subset_log
+
 class Timestamp_Formats:
     TIME_FORMAT_DALSTM = "%Y-%m-%d %H:%M:%S"
     #TIME_FORMAT_DALSTM2 = '%Y-%m-%d %H:%M:%S.%f%z' 
@@ -125,15 +131,20 @@ def reorder_columns(file, ordered_columns):
     df.to_csv(file, sep=",", index=False)
     
 # A method to tranform XES to CSV and execute some preprocessing steps
-def xes_to_csv(file, output_folder, perform_lifecycle_trick=True,
-                       fill_na=None):
-    
+def xes_to_csv(file, output_folder, perform_lifecycle_trick=True, fill_na=None,
+               ssd=False, ssd_dict=None, ssd_id=None):    
     xes_path = file
     csv_file = Path(file).stem.split('.')[0] + '.csv'
     dataset_name = Path(file).stem.split('.')[0]
     csv_path = os.path.join(output_folder, csv_file)
-    log = xes_import_factory.apply(xes_path,
-                                   parameters={'timestamp_sort': True})
+    if ssd:
+        original_log = xes_import_factory.apply(
+            xes_path, parameters={'timestamp_sort': True})
+        ssd_data_path =  os.path.join(output_folder, dataset_name + '#SSD' + '.xes')
+        log =  get_subset_cases(ssd_dict, ssd_id, original_log, ssd_data_path)
+    else:
+        log = xes_import_factory.apply(
+            xes_path, parameters={'timestamp_sort': True})   
     equivalent_dataframe = pm4py.convert_to_dataframe(log)
     equivalent_dataframe.to_csv(csv_path)
     pd_log = pd.read_csv(csv_path)   
@@ -198,10 +209,15 @@ def split_data(file=None, output_directory=None, case_column=None,
 
 
 # method to handle initial steps of preprocessing for DALSTM
-def data_handling(xes=None, output_folder=None, cfg=None):
-    
+def data_handling(xes=None, output_folder=None, cfg=None, ssd=False, 
+                  ssd_dict=None):
     # create equivalent csv file
-    csv_file, csv_path = xes_to_csv(file=xes, output_folder=output_folder) 
+    if ssd:
+        csv_file, csv_path = xes_to_csv(file=xes, output_folder=output_folder,
+                                        ssd=True, ssd_dict=ssd_dict,
+                                        ssd_id=cfg['ssd_key'])        
+    else:
+        csv_file, csv_path = xes_to_csv(file=xes, output_folder=output_folder) 
     # Define relevant attributes
     dataset_name = Path(xes).stem.split('.')[0] 
     attributes = cfg[dataset_name]['event_attributes']
@@ -838,6 +854,7 @@ def main():
                         help='Raw dataset to predict remaining time for')
     parser.add_argument('--seed', help='Random seed to use')
     parser.add_argument('--device', type=int, default=0, help='GPU device id')
+    parser.add_argument('--ssd', action='store_true', help='Set this flag to True')
     args = parser.parse_args()
     # set device
     device_name = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
@@ -848,9 +865,9 @@ def main():
     # set important file names and paths
     dataset_name = args.dataset
     current_directory = os.getcwd()
-    #raw_data_dir = os.path.join(current_directory, 'raw_datasets')
-    parent_directory = os.path.dirname(current_directory)
-    raw_data_dir = os.path.join(parent_directory, 'GGNN', 'raw_datasets')
+    # get the directory that is two level higher than curret folder
+    parent_directory = os.path.dirname(os.path.dirname(current_directory))
+    raw_data_dir = os.path.join(parent_directory, 'raw_datasets')
     dataset_file = dataset_name+'.xes'
     path = os.path.join(raw_data_dir, dataset_file)
     processed_data_path = os.path.join(current_directory, dataset_name)
@@ -859,7 +876,6 @@ def main():
         os.makedirs(processed_data_path)
     
     # define important hyperparameters
-    n_splits = 5
     n_nuerons = 150
     n_layers = 2 # number of LSTM layers
     dropout = True # whether to apply dropout
@@ -880,81 +896,82 @@ def main():
     ##########################################################################
     # Preprocessing process
     ##########################################################################
-    if seed == 42:
+    if args.ssd:
+        ssd_dict_path = os.path.join(raw_data_dir, dataset_name+'.pkl')
+        with open(ssd_dict_path, 'rb') as f:
+            ssd_dict =  pickle.load(f)            
         data_handling(xes=path, output_folder=processed_data_path,
-                      cfg=preprocessing_cfg)
-        
-        dalstm_process(dataset_name=dataset_name,
-                       output_folder=processed_data_path,
-                       normalization=normalization)
+                      cfg=preprocessing_cfg, ssd=True, ssd_dict=ssd_dict)
     else:
-        print('Preprocessing is already done!')
-    
+        data_handling(xes=path, output_folder=processed_data_path,
+                      cfg=preprocessing_cfg)           
+        
+    dalstm_process(dataset_name=dataset_name, output_folder=processed_data_path,
+                   normalization=normalization)    
     ##########################################################################
     # training and evaluation for holdout data split
     ##########################################################################
-    if seed == 42:
-        start=datetime.now()    
-        # Load tensors, and length lists
-        X_train_path = os.path.join(
+    start=datetime.now()    
+    # Load tensors, and length lists
+    X_train_path = os.path.join(
             processed_data_path, "DALSTM_X_train_"+dataset_name+".pt")
-        X_val_path = os.path.join(
+    X_val_path = os.path.join(
             processed_data_path, "DALSTM_X_val_"+dataset_name+".pt")
-        X_test_path = os.path.join(
+    X_test_path = os.path.join(
             processed_data_path, "DALSTM_X_test_"+dataset_name+".pt")
-        y_train_path = os.path.join(
+    y_train_path = os.path.join(
             processed_data_path, "DALSTM_y_train_"+dataset_name+".pt")
-        y_val_path = os.path.join(
+    y_val_path = os.path.join(
             processed_data_path, "DALSTM_y_val_"+dataset_name+".pt")
-        y_test_path = os.path.join(
+    y_test_path = os.path.join(
             processed_data_path, "DALSTM_y_test_"+dataset_name+".pt") 
-        test_length_path = os.path.join(
+    test_length_path = os.path.join(
             processed_data_path, "DALSTM_test_length_list_"+dataset_name+".pkl")    
-        scaler_path = os.path.join(
+    scaler_path = os.path.join(
             processed_data_path, "DALSTM_max_train_val_"+dataset_name+".pkl")
-        input_size_path = os.path.join(
+    input_size_path = os.path.join(
             processed_data_path, "DALSTM_input_size_"+dataset_name+".pkl")
-        max_len_path = os.path.join(
+    max_len_path = os.path.join(
             processed_data_path, "DALSTM_max_len_"+dataset_name+".pkl")         
-        X_train = torch.load(X_train_path)
-        X_val = torch.load(X_val_path)
-        X_test = torch.load(X_test_path)
-        y_train = torch.load(y_train_path)
-        y_val = torch.load(y_val_path)
-        y_test = torch.load(y_test_path)        
-        with open(test_length_path, 'rb') as f:
-            test_lengths =  pickle.load(f)
-        # input_size corresponds to vocab_size
-        with open(input_size_path, 'rb') as f:
-            input_size =  pickle.load(f)
-        with open(max_len_path, 'rb') as f:
-            max_len =  pickle.load(f) 
-        with open(scaler_path, 'rb') as f:
-            max_train_val =  pickle.load(f)  
-        # define training, validation, test datasets                    
-        train_dataset = TensorDataset(X_train, y_train)
-        val_dataset = TensorDataset(X_val, y_val)
-        test_dataset = TensorDataset(X_test, y_test)
-        # define training, validation, test data loaders
-        train_loader = DataLoader(train_dataset, batch_size=max_len, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=max_len, shuffle=False)
-        test_loader = DataLoader(test_dataset, batch_size=max_len, shuffle=False)
+    X_train = torch.load(X_train_path)
+    X_val = torch.load(X_val_path)
+    X_test = torch.load(X_test_path)
+    y_train = torch.load(y_train_path)
+    y_val = torch.load(y_val_path)
+    y_test = torch.load(y_test_path)        
+    with open(test_length_path, 'rb') as f:
+        test_lengths =  pickle.load(f)
+    # input_size corresponds to vocab_size
+    with open(input_size_path, 'rb') as f:
+        input_size =  pickle.load(f)
+    with open(max_len_path, 'rb') as f:
+        max_len =  pickle.load(f) 
+    with open(scaler_path, 'rb') as f:
+        max_train_val =  pickle.load(f)  
+    # define training, validation, test datasets                    
+    train_dataset = TensorDataset(X_train, y_train)
+    val_dataset = TensorDataset(X_val, y_val)
+    test_dataset = TensorDataset(X_test, y_test)
+    # define training, validation, test data loaders
+    train_loader = DataLoader(train_dataset, batch_size=max_len, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=max_len, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=max_len, shuffle=False)
         
-        # training for holdout data split
-        # define loss function
-        criterion = nn.L1Loss()
-        # define the model
-        model = DALSTMModel(input_size=input_size, hidden_size=n_nuerons,
+    # training for holdout data split
+    # define loss function
+    criterion = nn.L1Loss()
+    # define the model
+    model = DALSTMModel(input_size=input_size, hidden_size=n_nuerons,
                                 n_layers=n_layers, max_len=max_len,
                                 dropout=dropout, p_fix=drop_prob).to(device)
-        # define optimizer
-        optimizer = set_optimizer(model, optimizer_type, base_lr, eps,
+    # define optimizer
+    optimizer = set_optimizer(model, optimizer_type, base_lr, eps,
                                   weight_decay)          
-        # define scheduler
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5) 
+    # define scheduler
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5) 
         
-        # execute training:       
-        train_model(model=model, train_loader=train_loader,
+    # execute training:       
+    train_model(model=model, train_loader=train_loader,
                     val_loader=val_loader, criterion=criterion,
                     optimizer=optimizer, scheduler=scheduler, device=device,
                     num_epochs=max_epochs, early_patience=early_stop_patience,
@@ -962,26 +979,23 @@ def main():
                     clip_value=clip_value,
                     processed_data_path=processed_data_path,
                     data_split='holdout', seed=seed)     
-        training_time = (datetime.now()-start).total_seconds()
-        report_path = os.path.join(processed_data_path,
+    training_time = (datetime.now()-start).total_seconds()
+    report_path = os.path.join(processed_data_path,
                                    'holdout_seed_{}_report_.txt'.format(seed))
-        with open(report_path, 'w') as file:
-            file.write('Training time- in seconds: {}\n'.format(training_time)) 
-        print('Training for holout data slit is done!')
+    with open(report_path, 'w') as file:
+        file.write('Training time- in seconds: {}\n'.format(training_time)) 
+    print('Training for holout data slit is done!')
         
-        # now inference for holdout data split
-        # execute inference
-        test_model(model=model, test_loader=test_loader,
+    # now inference for holdout data split
+    # execute inference
+    test_model(model=model, test_loader=test_loader,
                    test_original_lengths=test_lengths,
                    y_scaler=max_train_val,
                    processed_data_path= processed_data_path,
                    data_split = 'holdout', seed=seed, device=device,
                    normalization=normalization)
-    
-    ##########################################################################
-    # training and evaluation for cross-validation data split
-    ##########################################################################
-    for fold in range(n_splits):
+        
+    # TODO: check probably removing the following line
         start=datetime.now()
         data_split_name = 'cv_' + str(fold)
         # Load tensors, and length lists
@@ -1065,11 +1079,7 @@ def main():
                    processed_data_path= processed_data_path,
                    data_split = data_split_name, seed=seed, device=device,
                    normalization=normalization)
-        
-    # delete all preprocessed data, after saving all the results.
-    # only after the last seed
-    if seed == 79:
-        delete_files(folder_path=processed_data_path, substring="DALSTM_")     
+    #delete_files(folder_path=processed_data_path, substring="DALSTM_")     
         
 if __name__ == '__main__':
     main()

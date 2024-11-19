@@ -1,4 +1,5 @@
 # Define data attributes for all logs in the experiment
+ssd_key: 1
 BPI_2012:
   event_attributes: ['org:resource'] 
   event_num_att: []  
