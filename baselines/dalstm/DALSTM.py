@@ -867,7 +867,7 @@ def main():
     current_directory = os.getcwd()
     # get the directory that is two level higher than curret folder
     parent_directory = os.path.dirname(os.path.dirname(current_directory))
-    raw_data_dir = os.path.join(parent_directory, 'raw_datasets')
+    raw_data_dir = os.path.join(parent_directory, 'raw_dataset')
     dataset_file = dataset_name+'.xes'
     path = os.path.join(raw_data_dir, dataset_file)
     processed_data_path = os.path.join(current_directory, dataset_name)
@@ -996,90 +996,7 @@ def main():
                    normalization=normalization)
         
     # TODO: check probably removing the following line
-        start=datetime.now()
-        data_split_name = 'cv_' + str(fold)
-        # Load tensors, and length lists
-        X_train_path = os.path.join(
-            processed_data_path, "DALSTM_X_train_fold_"+str(fold)+dataset_name+".pt")
-        X_val_path = os.path.join(
-            processed_data_path, "DALSTM_X_val_fold_"+str(fold)+dataset_name+".pt")
-        X_test_path = os.path.join(
-            processed_data_path, "DALSTM_X_test_fold_"+str(fold)+dataset_name+".pt")
-        y_train_path = os.path.join(
-            processed_data_path, "DALSTM_y_train_fold_"+str(fold)+dataset_name+".pt")
-        y_val_path = os.path.join(
-            processed_data_path, "DALSTM_y_val_fold_"+str(fold)+dataset_name+".pt")
-        y_test_path = os.path.join(
-            processed_data_path, "DALSTM_y_test_fold_"+str(fold)+dataset_name+".pt") 
-        test_length_path = os.path.join(
-            processed_data_path, "DALSTM_test_length_list_fold_"+str(fold)+dataset_name+".pkl")    
-        scaler_path = os.path.join(
-            processed_data_path, "DALSTM_max_train_val_"+dataset_name+".pkl")
-        input_size_path = os.path.join(
-            processed_data_path, "DALSTM_input_size_"+dataset_name+".pkl")
-        max_len_path = os.path.join(
-            processed_data_path, "DALSTM_max_len_"+dataset_name+".pkl")  
-        X_train = torch.load(X_train_path)
-        X_val = torch.load(X_val_path)
-        X_test = torch.load(X_test_path)
-        y_train = torch.load(y_train_path)
-        y_val = torch.load(y_val_path)
-        y_test = torch.load(y_test_path)        
-        with open(test_length_path, 'rb') as f:
-            test_lengths =  pickle.load(f)
-        # input_size corresponds to vocab_size
-        with open(input_size_path, 'rb') as f:
-            input_size =  pickle.load(f)
-        with open(max_len_path, 'rb') as f:
-            max_len =  pickle.load(f) 
-        with open(scaler_path, 'rb') as f:
-            max_train_val =  pickle.load(f) 
-        # define training, validation, test datasets                    
-        train_dataset = TensorDataset(X_train, y_train)
-        val_dataset = TensorDataset(X_val, y_val)
-        test_dataset = TensorDataset(X_test, y_test)
-        # define training, validation, test data loaders
-        train_loader = DataLoader(train_dataset, batch_size=max_len, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=max_len, shuffle=False)
-        test_loader = DataLoader(test_dataset, batch_size=max_len, shuffle=False)
-        # training for holdout data split
-        # define loss function
-        criterion = nn.L1Loss()
-        # define the model
-        model = DALSTMModel(input_size=input_size, hidden_size=n_nuerons,
-                                n_layers=n_layers, max_len=max_len,
-                                dropout=dropout, p_fix=drop_prob).to(device)
-        # define optimizer
-        optimizer = set_optimizer(model, optimizer_type, base_lr, eps,
-                                  weight_decay)          
-        # define scheduler
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5) 
-        
-        # execute training:       
-        train_model(model=model, train_loader=train_loader,
-                    val_loader=val_loader, criterion=criterion,
-                    optimizer=optimizer, scheduler=scheduler, device=device,
-                    num_epochs=max_epochs, early_patience=early_stop_patience,
-                    min_delta=early_stop_min_delta, clip_grad_norm=clip_grad_norm,
-                    clip_value=clip_value,
-                    processed_data_path=processed_data_path,
-                    data_split=data_split_name, seed=seed)     
-        training_time = (datetime.now()-start).total_seconds()
-        report_path = os.path.join(
-            processed_data_path,
-            '{}_seed_{}_report_.txt'.format(data_split_name,seed))
-        with open(report_path, 'w') as file:
-            file.write('Training time- in seconds: {}\n'.format(training_time)) 
-    
-        # now inference for cross=validation data split
-        # execute inference
-        test_model(model=model, test_loader=test_loader,
-                   test_original_lengths=test_lengths,
-                   y_scaler=max_train_val,
-                   processed_data_path= processed_data_path,
-                   data_split = data_split_name, seed=seed, device=device,
-                   normalization=normalization)
-    #delete_files(folder_path=processed_data_path, substring="DALSTM_")     
+    delete_files(folder_path=processed_data_path, substring="DALSTM_")     
         
 if __name__ == '__main__':
     main()
