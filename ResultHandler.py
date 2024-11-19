@@ -25,6 +25,7 @@ parser = argparse.ArgumentParser(description='Handle PGTNet results')
 parser.add_argument('--dataset_name', type=str, help='Name of the dataset')
 parser.add_argument('--seed_number', type=str, help='Seed number')
 parser.add_argument('--inference_config', type=str, help='Inference configuration')
+parser.add_argument('--ssd', action='store_true', help='Set this flag to True')
 args = parser.parse_args()
 dataset_name = args.dataset_name
 seed_number = args.seed_number
@@ -113,8 +114,14 @@ else:
 	    # if you are using older version of pandas you might need to replace "_append" by "append" in the following lines.
             match_data = initial_row._append(pd.Series([closest_match['predicted_cycle_time']], index=['predicted_cycle_time']))
             final_result_dataframe = final_result_dataframe._append(match_data, ignore_index=True)
-    
-    normalization_factor, mean_cycle_time = mean_cycle_norm_factor_provider(dataset_name)
+    if args.ssd:
+        root_path = os.getcwd()
+        load_path= os.path.join(
+            root_path, 'raw_dataset', dataset_name + '#normalization_factor.pkl')
+        normalization_factor, mean_cycle = mean_cycle_norm_factor_provider(
+            dataset_name, load_path=load_path, ssd=True)
+    else:
+        normalization_factor, mean_cycle_time = mean_cycle_norm_factor_provider(dataset_name)
     final_result_dataframe['MAE-days'] = (final_result_dataframe['real_cycle_time'] - final_result_dataframe['predicted_cycle_time']).abs() * normalization_factor
     final_result_dataframe.to_csv(csv_path, index=False)
 

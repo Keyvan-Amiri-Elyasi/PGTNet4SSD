@@ -13,6 +13,13 @@ import pickle
 import argparse
 from PGTNetutils import eventlog_class_provider
 
+# Get subset of case IDs based on the Steady State defined in a dictionary
+def get_subset_cases(ssd_dict, ssd_id, event_log, log, ssd_data_path):
+    selected_cases = ssd_dict.get(ssd_id)
+    subset_event_log = event_log[event_log['Case ID'].isin(selected_cases)]
+    subset_log = pm4py.filter_trace_attribute_values(log, 'concept:name', selected_cases)
+    pm4py.write_xes(subset_event_log, ssd_data_path)    
+    return subset_event_log, subset_log
 
 # Read user inputs from .yml file
 def read_user_inputs(file_path):
@@ -37,7 +44,8 @@ def ActiveCase(L1, L2, T):
     return number_of_active_cases
 
 # Get train, validation, test data split, as well as duration of the longest case in training data
-def train_test_split_func (log, event_log, split_ratio = [0.64, 0.16, 0.2]):
+def train_test_split_func (log, event_log, split_ratio = [0.64, 0.16, 0.2],
+                           ssd=False, save_path=None):
     start_dates, end_dates, durations, case_ids = [], [], [], []
     train_validation_index = int(len(log) * (split_ratio[0]+split_ratio[1]))
     train_index = int(len(log) * split_ratio[0])
@@ -58,6 +66,9 @@ def train_test_split_func (log, event_log, split_ratio = [0.64, 0.16, 0.2]):
     test_case_ids = sorted_case_ids[train_validation_index:]
     train_validation_durations = sorted_durations[:train_validation_index]        
     max_case_duration = max(train_validation_durations)
+    if ssd:
+        with open(save_path, 'wb') as file:
+            pickle.dump(max_case_duration, file)
     training_dataframe = pm4py.filter_trace_attribute_values(event_log, 'case:concept:name',
                                                              train_case_ids, 
                                                              case_id_key='case:concept:name')
@@ -327,7 +338,7 @@ def graph_conversion_func (split_log, removed_cases, idx, data_list, case_attrib
                 idx += 1
     return removed_cases, idx, data_list
 
-def main(directory, yml_file, overwrite):
+def main(directory, yml_file, overwrite, ssd):
     try:
         yml_file_path = os.path.join(directory, yml_file)
         user_inputs = read_user_inputs(yml_file_path)
@@ -352,14 +363,30 @@ def main(directory, yml_file, overwrite):
             print("Stopping the code.")
             return
         
-        # Import the event log
         root_directory = os.path.dirname(os.path.abspath(__file__))
         dataset_path = os.path.join(root_directory, 'raw_dataset', dataset_name)
-        log_original = xes_importer.apply(dataset_path)   
-        event_log_original = pm4py.read_xes(dataset_path)
-        """
-        log
-        event_log
+        if ssd:
+            # Import the original event log (all cases)
+            log_original = xes_importer.apply(dataset_path)   
+            event_log_original = pm4py.read_xes(dataset_path)
+            # get the address for SSD dictionary, and save path for subset log
+            folder_path = os.path.dirname(dataset_path)
+            ssd_dict_path = os.path.join(folder_path, dataset_name_no_ext + '.pkl') 
+            ssd_data_path =  os.path.join(folder_path, dataset_name_no_ext + '#SSD' + '.xes')
+            normalization_path = os.path.join(
+                folder_path, dataset_name_no_ext + '#normalization_factor.pkl') 
+            # load dictionary, and get relevant key for SSD
+            with open(ssd_dict_path, 'rb') as f:
+                ssd_dict =  pickle.load(f)
+            ssd_id = user_inputs.get('ssd_key')
+            # get subset of the log based on SSD key
+            event_log, log = get_subset_cases(
+                ssd_dict, ssd_id, event_log_original, log_original, ssd_data_path)
+        else:
+            # Import the original event log (all cases)
+            log = xes_importer.apply(dataset_path)   
+            event_log = pm4py.read_xes(dataset_path)          
+               
         # Assigning values from .yml file to global variables in main
         split_ratio = user_inputs.get('train_val_test_ratio')
         event_attributes = user_inputs.get('event_attributes', [])
@@ -372,7 +399,8 @@ def main(directory, yml_file, overwrite):
         # Split the event log into training, validation, and test sets
         train_df, val_df, test_df, train_val_df, train_log, val_log,test_log,\
             train_val_log, max_time_norm, sorted_start_dates,\
-                sorted_end_dates = train_test_split_func(log, event_log, split_ratio)
+                sorted_end_dates = train_test_split_func(
+                    log, event_log, split_ratio, ssd=ssd, save_path=normalization_path)
         # Get global information required for transformation (only use training and validation sets)
         # We use all observed values for categorical attributes (one-hot encoding).
         node_class_dict, max_case_df, max_active_cases, min_num_list, max_num_list, event_min_num_list,\
@@ -446,7 +474,6 @@ def main(directory, yml_file, overwrite):
             save_flie = open(save_address, "wb")
             pickle.dump(file_save_list[address_counter], save_flie)
             save_flie.close()  
-        """
         
     except FileNotFoundError:
         print("File not found. Please provide a valid file path.")
@@ -455,10 +482,11 @@ def main(directory, yml_file, overwrite):
         print(e)
 
 if __name__ == "__main__":    
-    parser = argparse.ArgumentParser(description="Converting event logs to graph datasets.")
-    parser.add_argument("directory", type=str, help="Directory where the conversion's configuration file is located")
-    parser.add_argument("yml_file", type=str, help="Name of the YAML file")
-    parser.add_argument("--overwrite", type=lambda x: x.lower() == 'true', help="Boolean indicating whether to overwrite")
+    parser = argparse.ArgumentParser(description='Converting event logs to graph datasets.')
+    parser.add_argument('directory', type=str, help="Directory where the conversion's configuration file is located")
+    parser.add_argument('yml_file', type=str, help='Name of the YAML file')
+    parser.add_argument('--ssd', action='store_true', help='Set this flag to True')
+    parser.add_argument('--overwrite', type=lambda x: x.lower() == 'true', help='Boolean indicating whether to overwrite')
     
     args = parser.parse_args()
-    main(args.directory, args.yml_file, args.overwrite)
+    main(args.directory, args.yml_file, args.overwrite, args.ssd)

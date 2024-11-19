@@ -27,7 +27,7 @@ from graphgps.logger import create_logger
 # Achtung: the following imports are added to the original implementation of graphGPS framework
 import pandas as pd 
 import numpy as np 
-from PGTNet.PGTNetutils import mean_cycle_norm_factor_provider, eventlog_name_provider 
+from PGTNet4SSD.PGTNetutils import mean_cycle_norm_factor_provider, eventlog_name_provider 
 
 
 torch.backends.cuda.matmul.allow_tf32 = True  # Default False in PyTorch 1.12+
@@ -228,7 +228,16 @@ if __name__ == '__main__':
         dataset_class_name = cfg.dataset.format.split('-')[1]
         event_log_name = eventlog_name_provider(dataset_class_name)
         prediction_file_name = event_log_name + '-pgtnet_prediction_dataframe.csv'
-        normalization_factor, mean_cycle = mean_cycle_norm_factor_provider(dataset_class_name)
+        if cfg.ssd:
+            root_path = os.getcwd()
+            load_path= os.path.join(
+                root_path, 'PGTNet4SSD', 'raw_dataset', 
+                event_log_name + '#normalization_factor.pkl')
+            normalization_factor, mean_cycle = mean_cycle_norm_factor_provider(
+                event_log_name, load_path=load_path, ssd=True)
+        else:
+            normalization_factor, mean_cycle = mean_cycle_norm_factor_provider(
+                dataset_class_name)
         prediction_dataframe['MAE-days'] = (prediction_dataframe['real_cycle_time'] - prediction_dataframe['predicted_cycle_time']).abs() * normalization_factor
         evalauation_df_path = os.path.join(cfg.out_dir, prediction_file_name)
         prediction_dataframe.to_csv(evalauation_df_path, index=False) # save prediction dataframe
