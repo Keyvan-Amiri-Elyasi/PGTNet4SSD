@@ -151,6 +151,8 @@ if __name__ == '__main__':
         # Achtung! the following is added to keep track of inference time
         if cfg.train.mode == 'event-inference' and run_id == 0:
             inference_start_time = datetime.datetime.now()
+        if cfg.train.mode == 'event-inference' and cfg.ssd:
+            inference_start_time = datetime.datetime.now()
         logging.info(f"    Starting now: {datetime.datetime.now()}")
         # Set machine learning pipeline
         loaders = create_loader()
@@ -188,7 +190,6 @@ if __name__ == '__main__':
                     checkpoint_path = os.path.join(fold_address, check_point_name)
                     loaded_checkpoint = torch.load(checkpoint_path)
                     model_state_dict = loaded_checkpoint['model_state']
-                    print(checkpoint_path)
                 else:
                     print("Error: multiple check point files might have been found.")
             else:
