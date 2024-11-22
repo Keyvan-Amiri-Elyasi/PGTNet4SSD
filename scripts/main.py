@@ -5,7 +5,6 @@ import logging
 import graphgps  # noqa, register custom modules
 from graphgps.agg_runs import agg_runs
 from graphgps.optimizer.extra_optimizers import ExtendedSchedulerConfig
-
 from torch_geometric.graphgym.cmd_args import parse_args
 from torch_geometric.graphgym.config import (cfg, dump_cfg,
                                              set_cfg, load_cfg,
@@ -20,11 +19,11 @@ from torch_geometric.graphgym.utils.comp_budget import params_count
 from torch_geometric.graphgym.utils.device import auto_select_device
 from torch_geometric.graphgym.register import train_dict
 from torch_geometric import seed_everything
-
 from graphgps.finetuning import load_pretrained_model_cfg, \
     init_model_from_pretrained
 from graphgps.logger import create_logger
 # Achtung: the following imports are added to the original implementation of graphGPS framework
+from torch_geometric.graphgym.register import register_config
 import pandas as pd 
 import numpy as np 
 from PGTNet4SSD.PGTNetutils import mean_cycle_norm_factor_provider, eventlog_name_provider 
@@ -116,6 +115,12 @@ def run_loop_settings():
     return run_ids, seeds, split_indices
 
 
+# Achtung! this method is added for registring new configuration for SSD projects
+def set_cfg_ssd(cfg):
+    cfg.ssd = True
+# Achtung! the following line is added to handle SSD projects
+register_config(True, set_cfg_ssd)
+    
 if __name__ == '__main__':
     # Load cmd line args
     args = parse_args()

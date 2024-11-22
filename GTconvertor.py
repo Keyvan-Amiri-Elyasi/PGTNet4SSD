@@ -16,7 +16,7 @@ from PGTNetutils import eventlog_class_provider
 # Get subset of case IDs based on the Steady State defined in a dictionary
 def get_subset_cases(ssd_dict, ssd_id, event_log, log, ssd_data_path):
     selected_cases = ssd_dict.get(ssd_id)
-    subset_event_log = event_log[event_log['Case ID'].isin(selected_cases)]
+    subset_event_log = event_log[event_log['case:concept:name'].isin(selected_cases)]
     subset_log = pm4py.filter_trace_attribute_values(log, 'concept:name', selected_cases)
     pm4py.write_xes(subset_event_log, ssd_data_path)    
     return subset_event_log, subset_log
@@ -374,7 +374,9 @@ def main(directory, yml_file, overwrite, ssd):
             ssd_dict_path = os.path.join(folder_path, dataset_name_no_ext + '.pkl') 
             ssd_data_path =  os.path.join(folder_path, dataset_name_no_ext + '#SSD' + '.xes')
             normalization_path = os.path.join(
-                folder_path, dataset_name_no_ext + '#normalization_factor.pkl') 
+                folder_path, dataset_name_no_ext + '#normalization_factor.pkl')
+            edge_dim_path = os.path.join(
+                folder_path, dataset_name_no_ext + '#edge_dim.pkl')
             # load dictionary, and get relevant key for SSD
             with open(ssd_dict_path, 'rb') as f:
                 ssd_dict =  pickle.load(f)
@@ -409,8 +411,11 @@ def main(directory, yml_file, overwrite, ssd):
                                                                         case_num_ful, event_num_att,
                                                                         event_attributes, 
                                                                         case_attributes_full,
-                                                                        event_log, log)
- 
+                                                                        event_log, log)       
+        # save the edge dimension for SSD projects.
+        if ssd:
+            with open(edge_dim_path, 'wb') as file:
+                pickle.dump(edge_dim, file)            
         # Now the main part for converting prefixes into directed attributed graphs
         removed_cases = [] # a list to collect removed cases (any case with length less than 3)
         idx = 0 # index for graphs
