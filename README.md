@@ -48,43 +48,13 @@ To train and evaluate PGTNet, we employ the implementation of [GraphGPS: General
 ```
 python file_transfer.py
 ```
-This script copies 5 important python scripts which take care of all necessary adjustments to the original implementation of GPS Graph Transformer recipe:
+This script copies 5 important python scripts which take care of all necessary adjustments to the original implementation of GPS Graph Transformer recipe. Training is done using the relevant .yml configuration file which specifies all hyperparameters and training parameters. All configuration files required to train PGTNet based on the event logs used in our experiments are collected [here](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/training_configs). The **file_transfer.py** script also copy all required configuration files for training and evaluation of PGTNet to the relevant folder (i.e., configs/GPS) in **GPS repository**.
 
-a. In **main.py** , the most important change is that a train mode called 'event-inference' is added to customize the inference step.
-
-b. In **master_loader.py**, the most important change is that several new dataset classes are added to handle graph representation of event logs.
-
-c. The python script **GTeventlogHandler.py** includes multiple **InMemoryDataset** Pytorch Geometric classes. We created one seperate class for each event log.
-
-d. The python scripts **linear_edge_encoder.py** and **two_layer_linear_edge_encoder.py** are specifically designed for edge embedding in the remaining cycle time prediction problem.
-
-Once abovementioned adjustments are done, training PGTNet is straightforward. Training is done using the relevant .yml configuration file which specifies all hyperparameters and training parameters. All configuration files required to train PGTNet based on the event logs used in our experiments are collected [here](https://github.com/keyvan-amiri/PGTNet/tree/main/training_configs). The **file_transfer.py** script also copy all required configuration files for training and evaluation of PGTNet to the relevant folder (i.e., configs/GPS) in **GPS repository**.
-
-For training PGTNet, you need to navigate to the root directory of **GPS repository** and run **main.py** script:
+For training and evaluation of PGTNet, you need to navigate to the root directory of **GPS repository** and run **main.py** script. To facilitate training and inference for all event logs, you need to run the following script: 
 ```
 cd ..
 python main.py --cfg configs/GPS/bpic2015m1-GPS+LapPE+RWSE-ckptbest.yaml run_multiple_splits [0,1,2,3,4] seed 42
 ```
-As we mentioned in our paper, to evaluate robustness of our approach we trained and evaluated PGTNet using three different random seeds. These random seeds are 42, 56, 89. Each time you want to train PGTNet for specific event log and specific seed number, you should adjust the **training configuration file** name, and the seed number in this command.
-
-The [**training configuration files**](https://github.com/keyvan-amiri/PGTNet/tree/main/training_configs) include all required training hyperparameters. Following table briefly discusses the most important parameters:
-
-| Parameter name | Parameter description |
-|----------|----------|
-| out_dir  | Name of the directory in which the results will be saved (e.g., results)| 
-| metric_best | The metric that is used for results. In our case, it is always **"mae"** (Mean Absolute Error). There is another parameter called "metric_agg" which determines whether the metric should be maximized or minimized (in our case it is always set to "argmin".)| 
-| dataset.format | Name of the PyG data object class that is used (e.g., PyG-EVENTBPIC15M1)| 
-| dataset.task | Specifies the task level. In our case, it is always set to **"graph"** since we always have a graph-level prediction task at hand.| 
-| dataset.task_type | Specifies the task type. In our case, it is always set to **"regression"**.| 
-| dataset.split_mode | while **"cv-kfold-5"** specifies cross-fold validation data split, **"standard"** can be used for holdout data split.| 
-| node_encoder_name | Specifies the encoding that will be employed for nodes. For instance, in **"TypeDictNode+LapPE+RWSE"**, "TypeDictNode" refers to embedding layer, and "LapPE+RWSE" refers to the type of PE/SEs that are used. There is another parameter called **node_encoder_num_types** which should be set the number of activity classes in the event log. For instance, node_encoder_num_types: 396 for the BPIC15-1 event log.| 
-| edge_encoder_name | Specifies the encoding that will be employed for edges. For instance, "TwoLayerLinearEdge" refers to two linear layers.| 
-| PE/SE parameters | Depending of type of PE/SEs that are used, all relevant hyperparameter can be defined. For instance if "LapPE+RWSE" is used, hyperparameters can be defined using "posenc_LapPE" and "posenc_RWSE". These hyperparameters include a wide range of options for instance the size of PE can be defined using "dim_pe", and the model that is used for processing it can be defined using "model" (for instance, model: DeepSet).|
-| train | Specify the most important training hyperparameters including the training mode (i.e., **train.mode**) and batch size (i.e., **train.batch_size**). We always use the **custom** mode for training. |
-| model | Specifies the most important global design options. For instance, **model.type** defines type of the model and in our case is always a **GPSModel**. The **model.loss_fun** defines the loss fucntion which in our case is always **l1** (the L1 loss function is equivalent to Mean Absolute Error). The **model.graph_pooling** specifies type of graph pooling and for instance can be set to "mean".|
-| gt | Specifies the most important design options with respect to Graph Transformer that will be employed. For instance, **gt.layer_type** defines type of MPNN and Transformer blocks within each GPS layer, and in our case is always set to **GINE+Transformer**. The **gt.layers** and **gt.n_heads** define the number of GPS layers and number of heads in each layer. The **gt.dim_hidden** defines the hidden dimentsion that is used for both node and edge features. Note that, this size also include PE/SEs that are incorporated into node and edge features. The **gt.dropout** and **gt.attn_dropout** define the dropout value for MPNN and Transformer blocks, respectively.|
-| optim | Specifies the most important design options with respect to the optimizer. For instance, **optim.optimizer** specifies the optimizer type and in our case is always set to **adamW**. The **optim.base_lr** and **optim.weight_decay** define base learning rate and weight decay, respectively. The **optim.max_epoch** specifies number of training epochs, while **optim.scheduler** and **optim.num_warmup_epochs** specify type of schedule (in our case always **cosine_with_warmup**) and number of warmup epochs. |
-<!-- This is not remaining of the table. -->
 
 Training results are saved in a seperate folder which is located in the **results** folder in the root directory of **GPS repository**. Name of this folder is always equivalent to the name of the configuration file that is used for training. For instance running the previous command produces this folder: **bpic2015m1-GPS+LapPE+RWSE-ckptbest**
 
