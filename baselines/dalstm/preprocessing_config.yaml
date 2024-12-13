@@ -1,6 +1,6 @@
 # Define data attributes for all logs in the experiment
 ssd_key: 1
-BPI_2012:
+BPI_Challenge_2012:
   event_attributes: ['org:resource'] 
   event_num_att: []  
   case_attributes: [] 
@@ -55,12 +55,12 @@ BPIC15_5:
   event_num_att: []  
   case_attributes: ['caseStatus', 'last_phase', 'Responsible_actor', 'parts', 'termName', 'requestComplete', 'caseProcedure', 'Includes_subCases'] 
   case_num_att: ['SUMleges'] 
-BPIC20_D:
+BPIC20_DomesticDeclarations:
   event_attributes: ['org:resource', 'org:role'] 
   event_num_att: []  
   case_attributes: [] 
   case_num_att: ['Amount']
-BPIC20_I:  
+BPIC20_InternationalDeclarations:  
   event_attributes: ['org:resource', 'org:role'] 
   event_num_att: []  
   case_attributes: ['Permit TaskNumber', 'Permit OrganizationalEntity', 'Permit BudgetNumber', 'Permit ActivityNumber'] 
@@ -70,7 +70,7 @@ BPI_2013_I:
   event_num_att: []  
   case_attributes: [] 
   case_num_att: []
-BPI_2013_C:
+BPI_Challenge_2013C:
   event_attributes: ['org:group', 'org:role', 'organization country','resource country', 'impact', "org:resource"]
   event_num_att: []  
   case_attributes: [] 
@@ -95,7 +95,7 @@ Sepsis:
   event_num_att: ['Age', 'Leucocytes', 'CRP', 'LacticAcid']  
   case_attributes: [] 
   case_num_att: []
-Traffic_Fine:
+Traffic_Fines:
   event_attributes: ['org:resource', 'dismissal', 'vehicleClass', 'article', 'notificationType', 'lastSent'] 
   event_num_att: ['amount', 'totalPaymentAmount', 'points', 'expense', 'paymentAmount']  
   case_attributes: [] 

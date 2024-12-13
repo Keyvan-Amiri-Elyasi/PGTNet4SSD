@@ -152,7 +152,7 @@ def xes_to_csv(file, output_folder, perform_lifecycle_trick=True, fill_na=None,
         pd_log.fillna(fill_na, inplace=True)
         pd_log.replace("-", fill_na, inplace=True)
         pd_log.replace(np.nan, fill_na)
-    if 'BPI_2012' in dataset_name:
+    if 'BPI_Challenge_2012' in dataset_name:
         counter_list = []
         for counter in range (len(pd_log)):
             for format_str in Timestamp_Formats.TIME_FORMAT_DALSTM_list:
@@ -172,7 +172,11 @@ def xes_to_csv(file, output_folder, perform_lifecycle_trick=True, fill_na=None,
         pd_log[XES_Fields.CASE_COLUMN])
     pd_log[XES_Fields.CASE_COLUMN] = pd_log[XES_Fields.CASE_COLUMN].cat.codes    
     # lifecycle_trick: ACTIVITY NAME + LIFECYCLE-TRANSITION
-    unique_lifecycle = pd_log[XES_Fields.LIFECYCLE_COLUMN].unique()
+    try:
+        unique_lifecycle = pd_log[XES_Fields.LIFECYCLE_COLUMN].unique()
+    except:
+        # to handle situations in which there is no lifecycle information
+        unique_lifecycle = ['COMPLETE'] 
     if len(unique_lifecycle) > 1 and perform_lifecycle_trick:
         pd_log[XES_Fields.ACTIVITY_COLUMN] = pd_log[
             XES_Fields.ACTIVITY_COLUMN].astype(str) + "+" + pd_log[
@@ -221,13 +225,13 @@ def data_handling(xes=None, output_folder=None, cfg=None, ssd=False,
     # Define relevant attributes
     dataset_name = Path(xes).stem.split('.')[0] 
     attributes = cfg[dataset_name]['event_attributes']
-    if dataset_name == "Traffic_Fine":
+    if dataset_name == "Traffic_Fines":
         attributes.remove('dismissal')     
-    if (dataset_name == "BPI_2012" or dataset_name == "BPI_2012W" 
+    if (dataset_name == "BPI_Challenge_2012" or dataset_name == "BPI_2012W" 
         or dataset_name == "BPI_2013_I"):
         attributes.append(XES_Fields.LIFECYCLE_COLUMN)
     # select related columns
-    if 'BPI_2012' in dataset_name:
+    if 'BPI_Challenge_2012' in dataset_name:
         #selected_timestamp_format =Timestamp_Formats.TIME_FORMAT_DALSTM2
         selected_timestamp_format =Timestamp_Formats.TIME_FORMAT_DALSTM
     else:
@@ -314,9 +318,9 @@ def dalstm_load_dataset(filename, prev_values=None):
         field = 3
         for i in dataset[0][3:]:
             if not np.issubdtype(dataframe.dtypes[field], np.number):
+                #print(field, values[field])           
                 a.extend(buildOHE(one_hot(
                     str(i), values[field], split="|")[0], values[field]))
-                #print(field, values[field])
             else:
                 #print('numerical', field)
                 a.append(i)
@@ -559,7 +563,7 @@ def dalstm_process(dataset_name=None, output_folder=None, normalization=False,
         max_train_val = None
     # convert numpy arrays to tensors
     # manage disk space for huge event logs
-    if (('BPIC15' in dataset_name) or (dataset_name== 'Traffic_Fine') or
+    if (('BPIC15' in dataset_name) or (dataset_name== 'Traffic_Fines') or
         (dataset_name== 'Hospital')):
         X_train = torch.tensor(X_train).type(torch.bfloat16)
         X_val = torch.tensor(X_val).type(torch.bfloat16)

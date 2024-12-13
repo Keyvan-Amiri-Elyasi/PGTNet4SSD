@@ -1,23 +1,24 @@
 out_dir: results
 metric_best: mae
 metric_agg: argmin
+ssd: True
 wandb:
   use: False
-  project: BPIC20I
+  project: BPIC15M4
 dataset:
-  format: PyG-EVENTBPIC20I
-  name: BPIC20Icycletimeprediction
+  format: PyG-EVENTBPIC15M4
+  name: BPIC15M4cycletimeprediction
   task: graph
   task_type: regression
   transductive: False
-  split_mode: cv-kfold-5
+  split_mode: standard
   node_encoder: True
   node_encoder_name: TypeDictNode+LapPE+RWSE
-  node_encoder_num_types: 34
-  node_encoder_bn: True
+  node_encoder_num_types: 354
+  node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: TwoLayerLinearEdge
-  edge_encoder_bn: True
+  edge_encoder_bn: False
 posenc_LapPE:
   enable: True
   eigen:
@@ -31,26 +32,24 @@ posenc_LapPE:
 posenc_RWSE:
   enable: True
   kernel:
-    times_func: range(1,34)
+    times_func: range(1,16)
   model: Linear
   dim_pe: 16
   raw_norm_type: BatchNorm
 pretrained:
-  dir: /home/kamiriel/GraphGPS/results/bpic2020i-GPS+LapPE+RWSE-ckptbest 
+  dir: /ceph/kamiriel/GraphGPS4SSD/results/bpic2015m3-GPSwGraphormer-ckptbest
 train:
   mode: event-inference
   batch_size: 1
   eval_period: 1
-  enable_ckpt: True
-  ckpt_best: True
-  #ckpt_period: 100
+  ckpt_period: 100
 model:
   type: GPSModel
   loss_fun: l1
   edge_decoding: dot
   graph_pooling: mean
 gt:
-  layer_type: GINE+Transformer  # CustomGatedGCN+Performer
+  layer_type: GINE+Transformer
   layers: 5
   n_heads: 8
   dim_hidden: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
@@ -59,7 +58,7 @@ gt:
   layer_norm: False
   batch_norm: True
 gnn:
-  head: san_graph
+  head: san_graph # can be san_graph or default
   layers_pre_mp: 0
   layers_post_mp: 3  # Not used when `gnn.head: san_graph`
   dim_inner: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
@@ -73,6 +72,6 @@ optim:
   optimizer: adamW
   weight_decay: 1e-5
   base_lr: 0.001
-  max_epoch: 600
+  max_epoch: 200
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 50
+  num_warmup_epochs: 100

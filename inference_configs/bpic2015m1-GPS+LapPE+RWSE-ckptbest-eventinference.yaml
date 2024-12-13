@@ -1,6 +1,7 @@
 out_dir: results
 metric_best: mae
 metric_agg: argmin
+ssd: True
 wandb:
   use: False
   project: BPIC15M1
@@ -10,7 +11,7 @@ dataset:
   task: graph
   task_type: regression
   transductive: False
-  split_mode: cv-kfold-5
+  split_mode: standard
   node_encoder: True
   node_encoder_name: TypeDictNode+LapPE+RWSE
   node_encoder_num_types: 396
@@ -36,14 +37,12 @@ posenc_RWSE:
   dim_pe: 16
   raw_norm_type: BatchNorm
 pretrained:
-  dir: /home/kamiriel/GraphGPS/results/bpic2015m1-GPS+LapPE+RWSE-ckptbest
+  dir: /ceph/kamiriel/GraphGPS4SSD/results/bpic2015m1-GPS+LapPE+RWSE-ckptbest
 train:
   mode: event-inference
   batch_size: 1
   eval_period: 1
-  enable_ckpt: True
-  ckpt_best: True
-  #ckpt_period: 100
+  ckpt_period: 100
 model:
   type: GPSModel
   loss_fun: l1
@@ -54,7 +53,7 @@ gt:
   layers: 5
   n_heads: 8
   dim_hidden: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
-  dropout: 0.0
+  dropout: 0.2
   attn_dropout: 0.5
   layer_norm: False
   batch_norm: True
@@ -65,14 +64,14 @@ gnn:
   dim_inner: 64  # `gt.dim_hidden` must match `gnn.dim_inner`
   batchnorm: True
   act: relu
-  dropout: 0.0
+  dropout: 0.2
   agg: mean  
   normalize_adj: False
 optim:
   clip_grad_norm: True
   optimizer: adamW
-  weight_decay: 1e-5
-  base_lr: 0.001
-  max_epoch: 600
+  weight_decay: 1e-2
+  base_lr: 0.00001
+  max_epoch: 200
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 50
+  num_warmup_epochs: 100
