@@ -11,34 +11,19 @@ git clone https://github.com/rampasek/GraphGPS
 This repository is called **GPS repository** in the remaining of this README file. Now, Navigate to the root directory of **GPS repository**, and clone the current repository (i.e., the **PGTNet repository**). By doing so, the **PGTNet repository** will be placed in the root directory of **GPS repository** meaning that the latter is the parent directory of the former.
 ```
 cd GraphGPS
-git clone https://github.com/keyvan-amiri/PGTNet
+git clone https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD
 ```
 
 **<a name="part2">2. Set up a Python environement to work with GPS Graph Transformers:</a>**
 
-GPS Graph Transformers recipe is implemented based on the PyTorch machine learning framework, and it utlizes [PyG](https://pytorch-geometric.readthedocs.io/en/latest/) (PyTorch Geometric) library. In order to be able to work with GPS Graph Transformers, you need to set up a Python environement with Conda as suggested [here](https://github.com/rampasek/GraphGPS#python-environment-setup-with-conda). To set up such an environement:
-```
-conda create -n graphgps python=3.10
-conda activate graphgps
+To install and set up an environment on a Linux system, go to the root directory of **PGTNet repository** and run the following commands:
 
-conda install pytorch=1.13 torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
-conda install pyg=2.2 -c pyg -c conda-forge
-pip install pyg-lib -f https://data.pyg.org/whl/torch-1.13.0+cu117.html
-
-pip install pytorch-lightning yacs torchmetrics
-pip install performer-pytorch
-pip install tensorboardX
-pip install ogb
-pip install wandb
-
-pip install pm4py
-#pip install PyYAML #Requirement already satisfied
-#pip install numpy  #Requirement already satisfied
-#pip install scikit-learn #Requirement already satisfied
-
+```bash
+conda create -n SSD python=3.11
+conda activate SSD
+pip install -r requirements.txt
 conda clean --all
 ```
-Note that, we also included pip install for [pm4py](https://pm4py.fit.fraunhofer.de/) library to facilitate working with event log data. 
 
 **<a name="part3">3. Converting an event log into a graph dataset:</a>**
 
@@ -46,7 +31,7 @@ In order to convert an event log into its corresponding graph dataset, you need 
 ```
 python GTconvertor.py conversion_configs bpic15m1.yaml --overwrite true
 ```
-The first argument (i.e., conversion_configs) is a name of directory in which all required configuration files are located. The second argument (i.e., bpic15m1.yaml) is the name of configuration file that defines parameters used for converting the event log into its corresponding graph dataset. All conversion configuration files used in our experiment are collected [here](https://github.com/keyvan-amiri/PGTNet/tree/main/conversion_configs). The last argument called overwrite is a Boolean variable which provides some flexibility. If it is set to false, and you have already converted the event log into its corresponding graph dataset the script simply skip repeating the task. 
+The first argument (i.e., conversion_configs) is a name of directory in which all required configuration files are located. The second argument (i.e., bpic15m1.yaml) is the name of configuration file that defines parameters used for converting the event log into its corresponding graph dataset. All conversion configuration files used in our experiment are collected [here](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/conversion_configs). The last argument called overwrite is a Boolean variable which provides some flexibility. If it is set to false, and you have already converted the event log into its corresponding graph dataset the script simply skip repeating the task. 
 
 **Graph dataset structure:** The resultant graph dataset will be saved in a seperate folder which is located in the **datasets** folder in the root directory for **GPS repository**. Each graph dataset is a [PyG data object](https://pytorch-geometric.readthedocs.io/en/latest/modules/data.html) and represents a set of event prefixes. For each graph dataset, three separate files are generated for the training, validation, and test sets. 
 
