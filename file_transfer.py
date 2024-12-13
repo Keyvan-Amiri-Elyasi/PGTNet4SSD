@@ -43,6 +43,13 @@ if __name__ == "__main__":
     shutil.copy(two_layer_linear_edge_source_path, two_layer_linear_edge_destination_path)
     #print(f"File copied from {two_layer_linear_edge_source_path} to {two_layer_linear_edge_destination_path}")
 
+    pgtnet_bash_file = "PGTNet.sh"
+    pgtnet_bash_source_path = os.path.join(script_dir, pgtnet_bash_file)
+    pgtnet_bash_destination_path = os.path.join(gps_directory, pgtnet_bash_file)
+    shutil.copy(pgtnet_bash_source_path, pgtnet_bash_destination_path)
+    #print(f"File copied from {pgtnet_bash_source_path} to {pgtnet_bash_destination_path}")
+
+
     # Move all training configurations    
     files = [f for f in os.listdir(train_conf_path) if os.path.isfile(os.path.join(train_conf_path, f))]
     for file in files:
