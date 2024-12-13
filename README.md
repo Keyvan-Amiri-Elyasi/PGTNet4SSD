@@ -3,7 +3,18 @@ In this repository, we explain how we train three different models: Dummy, DALST
 
 We applied all three models on 9 publicly available event logs. Each time we train the models first for all traces in the event log, and then for only traces that are included in steady-state periods. 
 
-**<a name="part1">1. Set up a Python environement to work with GPS Graph Transformers:</a>**
+**<a name="part1">1. Clone repositories:</a>**
+Clone the [GPS Graph Transformer repository](https://github.com/rampasek/GraphGPS) using the following command:
+```
+git clone https://github.com/rampasek/GraphGPS
+```
+This repository is called **GPS repository** in the remaining of this README file. Now, Navigate to the root directory of **GPS repository**, and clone the current repository (i.e., the **PGTNet repository**). By doing so, the **PGTNet repository** will be placed in the root directory of **GPS repository** meaning that the latter is the parent directory of the former.
+```
+cd GraphGPS
+git clone https://github.com/keyvan-amiri/PGTNet
+```
+
+**<a name="part2">2. Set up a Python environement to work with GPS Graph Transformers:</a>**
 
 GPS Graph Transformers recipe is implemented based on the PyTorch machine learning framework, and it utlizes [PyG](https://pytorch-geometric.readthedocs.io/en/latest/) (PyTorch Geometric) library. In order to be able to work with GPS Graph Transformers, you need to set up a Python environement with Conda as suggested [here](https://github.com/rampasek/GraphGPS#python-environment-setup-with-conda). To set up such an environement:
 ```
@@ -28,26 +39,6 @@ pip install pm4py
 conda clean --all
 ```
 Note that, we also included pip install for [pm4py](https://pm4py.fit.fraunhofer.de/) library to facilitate working with event log data. 
-
-**<a name="part2">2. Clone repositories and download event logs:</a>**
-
-Once you setup a conda environement, clone the [GPS Graph Transformer repository](https://github.com/rampasek/GraphGPS) using the following command:
-```
-git clone https://github.com/rampasek/GraphGPS
-```
-This repository is called **GPS repository** in the remaining of this README file. Now, Navigate to the root directory of **GPS repository**, and clone the current repository (i.e., the **PGTNet repository**). By doing so, the **PGTNet repository** will be placed in the root directory of **GPS repository** meaning that the latter is the parent directory of the former.
-```
-cd GraphGPS
-git clone https://github.com/keyvan-amiri/PGTNet
-```
-Now, we are ready to download all event logs that are used in our experiments. In priniciple, downloading event logs and converting them to graph datasets are not mandatory steps for training PGTNet because we already uploaded the resultant graph datasets [here](https://github.com/keyvan-amiri/PGTNet/tree/main/transformation). In case you want to start with [training](https://github.com/keyvan-amiri/PGTNet#part4) a PGTNet, you can skip this step and the next one. In this case, generated graph dataset are automatically downloaded and will be used to train and evaluate PGTNet for remaining time prediction.
-
-To download all event logs, navigate to the root directory of **PGTNet repository** and run `data-acquisition.py` script:
-```
-cd PGTNet
-python data-acquisition.py
-```
-All event logs utilized in our experiments are publicly available at [the 4TU Research Data repository](https://data.4tu.nl/categories/13500?categories=13503). The **data-acquisition.py** script download all event logs, and convert them into .xes format. It also generates additional event logs (BPIC12C, BPIC12W, BPIC12CW, BPIC12A, BPIC12O) from BPIC12 event log.  
 
 **<a name="part3">3. Converting an event log into a graph dataset:</a>**
 
