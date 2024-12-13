@@ -27,13 +27,20 @@ conda clean --all
 
 **<a name="part3">3. Converting an event log into a graph dataset:</a>**
 
-In order to convert an event log into its corresponding graph dataset, you need to run the same python script with specific arguments:
+In order to convert an event log into its corresponding graph dataset, you need to copy **.xes** files into [raw_dataset](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/raw_dataset) directory and then run the following script:
 ```
-python GTconvertor.py conversion_configs bpic15m1.yaml --overwrite true
+python GTconvertor.py conversion_configs bpic15m1.yaml --overwrite true --ssd
 ```
-The first argument (i.e., conversion_configs) is a name of directory in which all required configuration files are located. The second argument (i.e., bpic15m1.yaml) is the name of configuration file that defines parameters used for converting the event log into its corresponding graph dataset. All conversion configuration files used in our experiment are collected [here](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/conversion_configs). The last argument called overwrite is a Boolean variable which provides some flexibility. If it is set to false, and you have already converted the event log into its corresponding graph dataset the script simply skip repeating the task. 
+The first argument (i.e., conversion_configs) is a name of directory in which all required configuration files are located. The second argument (i.e., bpic15m1.yaml) is the name of configuration file that defines parameters used for converting the event log into its corresponding graph dataset. All conversion configuration files used in our experiment are collected [here](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/conversion_configs). If the third argument (overwrite) is false, and you have already converted the event log into its corresponding graph dataset the script simply skip repeating the task. The last argument, specifies whether the whole event log should be converted to a graph dataset or only steady state traces are converted. In the latter case, a dictionary that divides traces into steady-state and non-steady-state is required (all dictionaries used in our experiments are collected in **raw_dataset** directory).
 
-**Graph dataset structure:** The resultant graph dataset will be saved in a seperate folder which is located in the **datasets** folder in the root directory for **GPS repository**. Each graph dataset is a [PyG data object](https://pytorch-geometric.readthedocs.io/en/latest/modules/data.html) and represents a set of event prefixes. For each graph dataset, three separate files are generated for the training, validation, and test sets. 
+In order to convert all event logs into thier corresponding graph datasets you can run the following script:
+```
+bash CONVERT.sh
+```
+Once training and evaluation is done, you can repeat the conversion process with only steady-state traces running the following script:
+```
+bash CONVERT_SSD.sh
+```
 
 **<a name="part4">4. Training a PGTNet for remaining time prediction:</a>**
 
