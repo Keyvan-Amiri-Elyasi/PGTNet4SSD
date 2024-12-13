@@ -67,6 +67,6 @@ In order to train and evaluate DALSTM models, you need to navigate to [this](htt
 bash DALSTM.sh
 ```
 
-**<a name="part5">5. DUMMY model:</a>**
+**<a name="part6">6. DUMMY model:</a>**
 
 A simple baseline that predicts the average remaining time of all training prefixes with the same length k as a given prefix. Training and inference with DUMMY model is done using a Jupyter Notebook that is provided in [this](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/baselines/dummy) folder.
