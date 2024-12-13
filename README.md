@@ -1,11 +1,7 @@
-# PGTNet: A Process Graph Transformer Network for Remaining Time Prediction of Business Process Instances
-This is the supplementary githob repository of the paper: "PGTNet: A Process Graph Transformer Network for Remaining Time Prediction of Business Process Instances".
+# Supplementary Github repository for experiment 2 in our paper: On the Use of Steady-State Detection for Process Mining: Achieving More Accurate Insights
+In this repository, we explain how we train three different models: Dummy, DALSTM, and PGTNet for remaining time prediction based on steady-state detection results. This repository is a forked version of [PGTNet repository](https://github.com/keyvan-amiri/PGTNet) with minor changes. For more details, you can refer to the original repository.
 
-Our approach consists of a data transformation from an event log to a graph dataset, and training a neural network based on the [GraphGPS: General Powerful Scalable Graph Transformers](https://github.com/rampasek/GraphGPS) recipe. 
-
-<p align="center">
-  <img src="https://github.com/keyvan-amiri/PGTNet/blob/main/PGTNet-Architecture.png">
-</p>
+We applied all three models on 9 publicly available event logs. Each time we train the models first for all traces in the event log, and then for only traces that are included in steady-state periods. 
 
 **<a name="part1">1. Set up a Python environement to work with GPS Graph Transformers:</a>**
 
