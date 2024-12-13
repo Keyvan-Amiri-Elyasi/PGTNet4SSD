@@ -1,0 +1,86 @@
+aiohappyeyeballs==2.4.3
+aiohttp==3.11.6
+aiosignal==1.3.1
+attrs==24.2.0
+axial_positional_embedding==0.2.1
+Brotli @ file:///croot/brotli-split_1714483155106/work
+certifi @ file:///croot/certifi_1725551672989/work/certifi
+charset-normalizer @ file:///croot/charset-normalizer_1721748349566/work
+click==8.1.7
+contourpy==1.3.1
+cvxopt==1.3.2
+cycler==0.12.1
+deprecation==2.1.0
+docker-pycreds==0.4.0
+einops==0.8.0
+filelock @ file:///croot/filelock_1700591183607/work
+fonttools==4.55.0
+frozenlist==1.5.0
+fsspec==2024.10.0
+gitdb==4.0.11
+GitPython==3.1.43
+gmpy2 @ file:///work/ci_py311/gmpy2_1676839849213/work
+graphviz==0.20.3
+idna @ file:///croot/idna_1714398848350/work
+intervaltree==3.1.0
+Jinja2 @ file:///croot/jinja2_1730902924303/work
+joblib==1.4.2
+kiwisolver==1.4.7
+lightning==2.4.0
+lightning-utilities==0.11.9
+littleutils==0.2.4
+local-attention==1.9.15
+lxml==5.3.0
+MarkupSafe @ file:///croot/markupsafe_1704205993651/work
+matplotlib==3.9.2
+mkl-service==2.4.0
+mkl_fft @ file:///io/mkl313/mkl_fft_1730824109137/work
+mkl_random @ file:///io/mkl313/mkl_random_1730823916628/work
+mpmath @ file:///croot/mpmath_1690848262763/work
+multidict==6.1.0
+networkx @ file:///croot/networkx_1717597493534/work
+numpy @ file:///croot/numpy_and_numpy_base_1725470312869/work/dist/numpy-2.0.1-cp311-cp311-linux_x86_64.whl#sha256=372b9067cf9c96d8662c6f20ef49eeda43f0f8d2f074820224c954d8d8fae7bc
+ogb==1.3.6
+outdated==0.2.2
+packaging==24.2
+pandas==2.2.3
+performer-pytorch==1.1.4
+pillow @ file:///croot/pillow_1731594689713/work
+platformdirs==4.3.6
+pm4py==2.7.12.1
+propcache==0.2.0
+protobuf==5.28.3
+psutil==6.1.0
+pydotplus==2.0.2
+pyg-lib==0.4.0+pt24cu124
+pyparsing==3.2.0
+PySocks @ file:///work/ci_py311/pysocks_1676822712504/work
+python-dateutil==2.9.0.post0
+pytorch-lightning==2.4.0
+pytz==2024.2
+PyYAML @ file:///croot/pyyaml_1728657952215/work
+requests @ file:///croot/requests_1730999120400/work
+scikit-learn==1.5.2
+scipy==1.14.1
+sentry-sdk==2.18.0
+setproctitle==1.3.4
+six==1.16.0
+smmap==5.0.1
+sortedcontainers==2.4.0
+sympy @ file:///croot/sympy_1724938189289/work
+tensorboardX==2.6.2.2
+threadpoolctl==3.5.0
+torch==2.4.0
+torch-geometric==2.6.1
+torch_scatter @ file:///usr/share/miniconda/envs/test/conda-bld/pytorch-scatter_1723705428124/work
+torchaudio==2.4.0
+torchmetrics==1.6.0
+torchvision==0.19.0
+tqdm==4.67.0
+triton==3.0.0
+typing_extensions @ file:///croot/typing_extensions_1715268824938/work
+tzdata==2024.2
+urllib3 @ file:///croot/urllib3_1727769808118/work
+wandb==0.18.7
+yacs==0.1.8
+yarl==1.17.2
