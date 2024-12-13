@@ -59,8 +59,14 @@ In our experiment, we executed this script first for all traces in each event lo
 Training results are saved in a seperate folder which is located in the **results** folder in the root directory of **GPS repository**.
 
 **<a name="part5">5. DALSTM model:</a>**
+
 [DALSTM](https://ieeexplore.ieee.org/abstract/document/8285184): An LSTM-based approach that was recently shown to have superior results among LSTMs used for remaining time prediction. To implement this baseline, we used the [**pmdlcompararator**](https://gitlab.citius.usc.es/efren.rama/pmdlcompararator) gitlab repository of a recently published [benchamrk](https://ieeexplore.ieee.org/abstract/document/9667311).
-**Implementation of the baselines:**
-As it is discussed in our paper, we compare our approach against three others:
-1. DUMMY : A simple baseline that predicts the average remaining time of all training prefixes with the same length k as a given prefix.
-2. We adjusted this implementation as per follows: a) the original implementation was based on Keras, we have implemented the same model in Pytorch. b) Unlike the original implementation we excluded prefixes of length 1 to have a fair comparison (remember that our graph representation of event prefixes requires at least two events). c) We extended the original implemetation utilizing more event logs that were not part of the benchmark. Our implementation of DALSTM can be find [here](https://github.com/keyvan-amiri/PGTNet/tree/main/baselines/dalstm).
+
+In order to train and evaluate DALSTM models, you need to navigate to [this](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/baselines/dalstm) directory and run the following script:
+```
+bash DALSTM.sh
+```
+
+**<a name="part5">5. DUMMY model:</a>**
+
+A simple baseline that predicts the average remaining time of all training prefixes with the same length k as a given prefix. Training and inference with DUMMY model is done using a Jupyter Notebook that is provided in [this](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/baselines/dummy) folder.
