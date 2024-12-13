@@ -42,7 +42,7 @@ Once training and evaluation is done, you can repeat the conversion process with
 bash CONVERT_SSD.sh
 ```
 
-**<a name="part4">4. Training a PGTNet for remaining time prediction:</a>**
+**<a name="part4">4. Training and evaluation of PGTNet models for remaining time prediction:</a>**
 
 To train and evaluate PGTNet, we employ the implementation of [GraphGPS: General Powerful Scalable Graph Transformers](https://github.com/rampasek/GraphGPS). However, in order to use it for remaining time prediction of business process instances, you need to adjust some part of the original implementation. This can be achieved by running the following command:
 ```
