@@ -48,63 +48,19 @@ To train and evaluate PGTNet, we employ the implementation of [GraphGPS: General
 ```
 python file_transfer.py
 ```
-This script copies 5 important python scripts which take care of all necessary adjustments to the original implementation of GPS Graph Transformer recipe. Training is done using the relevant .yml configuration file which specifies all hyperparameters and training parameters. All configuration files required to train PGTNet based on the event logs used in our experiments are collected [here](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/training_configs). The **file_transfer.py** script also copy all required configuration files for training and evaluation of PGTNet to the relevant folder (i.e., configs/GPS) in **GPS repository**.
+This script copies 5 important python scripts which take care of all necessary adjustments to the original implementation of GPS Graph Transformer recipe. Training is done using the relevant .yml configuration file which specifies all hyperparameters and training parameters. All configuration files required to train PGTNet based on the event logs used in our experiments are collected [here](https://github.com/Keyvan-Amiri-Elyasi/PGTNet4SSD/tree/main/training_configs). Similarly, all **inference configuration files** that are used in our experiments are collected [here](https://github.com/keyvan-amiri/PGTNet/tree/main/evaluation_configs). The **file_transfer.py** script also copy all required configuration files for training and evaluation of PGTNet to the relevant folder (i.e., configs/GPS) in **GPS repository**.
 
-For training and evaluation of PGTNet, you need to navigate to the root directory of **GPS repository** and run **main.py** script. To facilitate training and inference for all event logs, you need to run the following script: 
+For training and evaluation of PGTNet, you need to navigate to the root directory of **GPS repository** and run **main.py** script. To train and evaluate PGTNet for all event logs, you need to run the following script: 
 ```
 cd ..
-python main.py --cfg configs/GPS/bpic2015m1-GPS+LapPE+RWSE-ckptbest.yaml run_multiple_splits [0,1,2,3,4] seed 42
+bash PGTNet.sh
 ```
+In our experiment, we executed this script first for all traces in each event logs, and then executed the same script only for steady-state traces.
+Training results are saved in a seperate folder which is located in the **results** folder in the root directory of **GPS repository**.
 
-Training results are saved in a seperate folder which is located in the **results** folder in the root directory of **GPS repository**. Name of this folder is always equivalent to the name of the configuration file that is used for training. For instance running the previous command produces this folder: **bpic2015m1-GPS+LapPE+RWSE-ckptbest**
-
-This folder contains the best models (i.e., checkpoints) for each of 5 different folds (best checkpoints are selected based on the minimum MAE over validation set). The checkpint files can be used for inference with PGTNet as it is discussed in the [next section](#part5). You can also visualize learning curve using tensorboard:
-```
-tensorboard --logdir=work/kamiriel/GraphGPS/results/bpic2015m1-GPS+LapPE+RWSE-ckptbest/agg #the location of the training results on your system 
-```
-
-<a name="part5">**5. Inference with PGTNet:**</a>
-
-The inference (i.e., get prediction of PGTNet for all examples in the test set) can be done similar to the training step. To do so, run commands like: 
-```
-python main.py --cfg configs/GPS/bpic2015m1-GPS+LapPE+RWSE-ckptbest-eventinference.yaml run_multiple_splits [0,1,2,3,4] seed 42
-```
-All **inference configuration files** that are used in our experiments are collected [here](https://github.com/keyvan-amiri/PGTNet/tree/main/evaluation_configs).
-
-In principle, the inference configuration files are similar to the training configuration files. The most important difference is that, the **"train.mode"** parameter is set to **"event-inference"** instead of "custom". The inference configuration files additionally include another parameter called **"pretrained.dir"** by which we specify the folder that contais training results. For instance, it can be something like this:
-```
-pretrained:
-  dir: /work/kamiriel/GraphGPS/results/bpic2015m1-GPS+LapPE+RWSE-ckptbest #the location of the training results on your system
-```
-
-Running the inference script results in one dataframe including predictions for all event prefixes (We call it **prediction dataframe**). In prediction dataframe, each row represents a graph representation of an event prefix for which number of nodes, number of edges, real remaining time (normalized),  predicted remaining time (normalized), and mean absolute error (in days) are provided thorugh different columns.
-
-While the mean of the **"MAE-days"** column is the average of mean absolute error for all 5 folds, prediction dataframe still needs to be processed for further performance analysis (e.g., earliness analysis). This further processing is required because it is not clear that each row of the prediction dataframe belongs to which trace (the prediction dataframe does not include case id in its columns), and what is the number of events of the prefix (remember that edges have weights, and therefore knowing number of nodes, and edges is not sufficient for inference about length of the prefix). Therefore, we need to use a matching algorithm (from rows of prediction dataframe to event prefixes in the original event log). This can be achieved by navigating to the root directory of **PGTNet repository** and running the following script:
-```
-cd PGTNet
-python ResultHandler.py --dataset_name BPIC15_1 --seed_number 42 --inference_config 'bpic2015m1-GPS+LapPE+RWSE-ckptbest-eventinference'
-```
-Note that the dataset_name should match the relevant part of the name of prediction dataframe, meaning that it should be one of the elements of this set: {"BPIC15_1", "BPIC15_2", "BPIC15_3", "BPIC15_4", "BPIC15_5", "BPI_Challenge_2012", "BPI_Challenge_2012A", "BPI_Challenge_2012O", "BPI_Challenge_2012W",  "BPI_Challenge_2012C", "BPI_Challenge_2012CW", "BPI_Challenge_2013C", "BPI_Challenge_2013I", "BPIC20_DomesticDeclarations", "BPIC20_InternationalDeclarations", "env_permit", "HelpDesk",  "Hospital", "Sepsis", "Traffic_Fines"}
-
-The result of this matching process is saved as a dataframe in the **PGTNet results** folder in the root directory of **PGTNet repository**, and can be used for further performance evaluation analysis.
-
-**<a name="part6">6. Miscellaneous:</a>**
-
-**Earliness of PGTNet's predictions:**
-
-We are interested in models that not only have smaller MAE but also can make accurate predictions earlier, allowing more time for corrective actions. We used the method proposed in [Predictive Business Process Monitoring with LSTM Neural Networks](https://link.springer.com/chapter/10.1007/978-3-319-59536-8_30), which evaluates MAE across different event prefix lengths. In our paper, we have provided the predcition earliness analysis (i.e., MAE trends at different prefix lengths) only for BPIC15-4, Sepsis, Helpdesk, and BPIC12A event logs. Similar analysis for other event logs used in our experiments can be found [here](https://github.com/keyvan-amiri/PGTNet/tree/main/earliness_analysis).
-
-**Ablation study:**
-
-As it is discussed in our paper, we conducted an ablation study for which we trained a minimal PGTNet model, relying solely on edge weights (i.e., control-flow) and temporal features, thus omitting data attributes from consideration. To replicate our ablation study, you need to adjust the conversion script and use different configuration files which you can find [here](https://github.com/keyvan-amiri/PGTNet/tree/main/ablation_study). For the quantitative analysis of the contribution of PGTNet's architecture and the contribution of incorporating additional features to the remarkabel performance of PGTNet see this [plot](https://github.com/keyvan-amiri/PGTNet/blob/main/ablation_study/ablation_plot.pdf). 
-
-**PGTNet's results for holdout data split:**
-
-While we chose a 5-fold cross-validation strategy (CV=5) in our experiments, we also report the [results](https://github.com/keyvan-amiri/PGTNet/blob/main/holdout_results/README.md) obtained using holdout data splits for the sake of completeness. Note that, we used different training configuration files for holdout data split which can be found on the same [folder](https://github.com/keyvan-amiri/PGTNet/tree/main/holdout_results).
-
+**<a name="part5">5. DALSTM model:</a>**
+[DALSTM](https://ieeexplore.ieee.org/abstract/document/8285184): An LSTM-based approach that was recently shown to have superior results among LSTMs used for remaining time prediction. To implement this baseline, we used the [**pmdlcompararator**](https://gitlab.citius.usc.es/efren.rama/pmdlcompararator) gitlab repository of a recently published [benchamrk](https://ieeexplore.ieee.org/abstract/document/9667311).
 **Implementation of the baselines:**
 As it is discussed in our paper, we compare our approach against three others:
 1. DUMMY : A simple baseline that predicts the average remaining time of all training prefixes with the same length k as a given prefix.
-2. [DALSTM](https://ieeexplore.ieee.org/abstract/document/8285184): An LSTM-based approach that was recently shown to have superior results among LSTMs used for remaining time prediction. To implement this baseline, we used the [**pmdlcompararator**](https://gitlab.citius.usc.es/efren.rama/pmdlcompararator) github repository of a recently published [benchamrk](https://ieeexplore.ieee.org/abstract/document/9667311). We adjusted this implementation as per follows: a) the original implementation was based on Keras, we have implemented the same model in Pytorch. b) Unlike the original implementation we excluded prefixes of length 1 to have a fair comparison (remember that our graph representation of event prefixes requires at least two events). c) We extended the original implemetation utilizing more event logs that were not part of the benchmark. Our implementation of DALSTM can be find [here](https://github.com/keyvan-amiri/PGTNet/tree/main/baselines/dalstm).
-3. [ProcessTransformer](https://arxiv.org/abs/2104.00721): A transformer-based approach designed to overcome LSTM’s limitations that generally outperforms DALSTM. To implement this baseline, we used [**ProcessTransformer**](https://github.com/Zaharah/processtransformer) github repository. However, we adjusted the original implementation as per follows: a) the original implementation is based on Keras, we have provided the implementation of the same model in Pytorch framework. b) the original implementation does not include cross-validation data split. We extended it by considering both holdout and cross-validation data split. c) The performance evaluation of ProcessTransformer is conducted differently. To ensure having a fair comparison, predictions of event prefixes of length 1, and length n (where n is the number of events in the trace) are not included in our performance evaluation. More importantly, the metric that is reported in ProcessTransformer paper is not MAE (mean absolute error) as authers computed the average of errors for different prefix lengths while they did not account for different frequencies of different prefix lengths in the test set. However, MAE should reflect frequencies and can be considered as the weighted average of errors for different prefix lengths. We used this weighted average in our implementation to ensure having a fair comparison. Our implementation of ProcessTransformer model can be find [here](https://github.com/keyvan-amiri/PGTNet/tree/main/baselines/processtransformer).
-4. [GGNN](https://dl.acm.org/doi/abs/10.1145/3589883.3589897): A graph-based approach which utilizes Gated Graph Neural Network (GGNN) for remaining time prediction. To implement this baseline we used [**GGNN**](https://github.com/duongtoan261196/RemainingCycleTimePrediction) github repository. We have extended the original implementation which was limited to two publicly available event logs. Furthermore, we have provided a modular python implementation which can be easily extended (the original implementation was in jupyter notebook). Finally, we improved the original implementation in multiple ways. For instance, the original search space for the widths of Gated Graph Convolution layers could not handle event logs with distinct activities more than 100. Like ProcessTransformer model, the provided metric is not MAE as it is averaged across different prefix lengths without considering the frequency of prefixes for each length. Our implementation for this model, can be find here.
+2. We adjusted this implementation as per follows: a) the original implementation was based on Keras, we have implemented the same model in Pytorch. b) Unlike the original implementation we excluded prefixes of length 1 to have a fair comparison (remember that our graph representation of event prefixes requires at least two events). c) We extended the original implemetation utilizing more event logs that were not part of the benchmark. Our implementation of DALSTM can be find [here](https://github.com/keyvan-amiri/PGTNet/tree/main/baselines/dalstm).
