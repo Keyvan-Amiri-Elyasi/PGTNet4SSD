@@ -13,6 +13,7 @@ import pickle
 import argparse
 from PGTNetutils import eventlog_class_provider
 
+"""
 # Get subset of case IDs based on the Steady State defined in a dictionary
 def get_subset_cases(ssd_dict, ssd_id, event_log, log, ssd_data_path):
     selected_cases = ssd_dict.get(ssd_id)
@@ -20,6 +21,7 @@ def get_subset_cases(ssd_dict, ssd_id, event_log, log, ssd_data_path):
     subset_log = pm4py.filter_trace_attribute_values(log, 'concept:name', selected_cases)
     pm4py.write_xes(subset_event_log, ssd_data_path)    
     return subset_event_log, subset_log
+"""
 
 # Read user inputs from .yml file
 def read_user_inputs(file_path):
