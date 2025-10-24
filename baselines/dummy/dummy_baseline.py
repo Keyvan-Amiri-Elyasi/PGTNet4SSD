@@ -92,9 +92,7 @@ def length_bucket_dummy(train_df, test_df, partitions,
     sel_test['prediction'] = sel_test['prefix_length'].apply(
     lambda x: mean_lst[find_closest_partition_index(x, partitions)])
     mae_test = (sel_test['prediction'] - sel_test['rem_time']).abs().mean() / (24 * 3600)    
-    return mae_test 
-    
-   
+    return mae_test    
 
 def main():
     # TODO: adjust the data directory (in github repo)
