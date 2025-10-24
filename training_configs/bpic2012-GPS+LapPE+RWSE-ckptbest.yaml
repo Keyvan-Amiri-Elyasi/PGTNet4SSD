@@ -1,7 +1,6 @@
 out_dir: results
 metric_best: mae
 metric_agg: argmin
-ssd: True
 wandb:
   use: False
   project: BPIC12
